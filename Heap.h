@@ -8,14 +8,12 @@ private:
 	node* next;
 	node* child;
 	node* parent;
-	int Value;
 	int degree;
 	bool marked;
 	
 public:
-
+	int Value;
 	int Vertice;
-
 	friend class Heap;
 	node* getPrev() { return prev; }
 	node* getNext() { return next; }
@@ -23,7 +21,6 @@ public:
 	node* getParent() { return parent; }
 	int getValue() { return Value; }
 	bool isMarked() { return marked; }
-
 	bool hasChildren() { return child; }
 	bool hasParent() { return parent; }
 };
@@ -32,41 +29,25 @@ class Heap
 {
 protected:
 	node* heap;
-
 public:
-
 	Heap();
 	virtual ~Heap();
-
 	node* insert(int value,int vertice);
-
 	void merge(Heap& other);
-
 	bool isEmpty();
-
 	node* getMinimum();
-
 	int removeMinimum();
-
-	void decreaseKey(node* n, int value);
-
+	node* decreaseKey(node* n, int value);
 	node* find(int value);
 private:
 	node * _empty();
 	node* _singleton(int value, int vertice);
 	node* _merge(node* a, node* b);
 	void _deleteAll(node* n);
-
 	void _addChild(node* parent, node* child);
-
 	void _unMarkAndUnParentAll(node* n);
-
 	node* _removeMinimum(node* n);
-
 	node* _cut(node* heap, node* n);
-
 	node* _decreaseKey(node* heap, node* n, int value);
-
 	node* _find(node* heap, int value);
-
 };

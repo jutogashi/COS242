@@ -15,7 +15,7 @@ using namespace std;
 struct ListNode
 {
 	int vertice;
-	int peso;
+	float peso;
 	ListNode* pNext;
 	ListNode* pPrev;
 
@@ -59,8 +59,17 @@ protected:
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 
 
-
+	float * m_distancia;
+	int* m_pai;
+	int* m_conjuntoS;
 	void Dijkstra(int s);
+	void MST(int s);
+	int Excentricidade(int s);
+
+	float Distancia_media();
+	void Dijkstra_modificado(int s);
+	float m_distancia_parcial;
+	int m_pares_invalidos;
 
 };
 

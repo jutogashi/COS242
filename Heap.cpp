@@ -12,12 +12,10 @@ using namespace std;
 		if (heap) {
 			_deleteAll(heap);
 		}
-
 	}
 
 	node* Heap::insert(int value, int vertice) {
 		node* ret = _singleton(value,vertice);
-		ret->Vertice = vertice;
 		heap = _merge(heap, ret);
 		return ret;
 	}
@@ -43,8 +41,9 @@ using namespace std;
 		return ret;
 	}
 
-	void Heap::decreaseKey(node* n, int value) {
+	node* Heap::decreaseKey(node* n, int value) {
 		heap = _decreaseKey(heap, n, value);
+		return _decreaseKey(heap, n, value);
 	}
 
 	node* Heap::find(int value) {

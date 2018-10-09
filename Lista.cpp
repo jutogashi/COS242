@@ -39,10 +39,11 @@ Lista::Lista(string path)
 		if (s.empty() == false)
 		{
 			istringstream tmp(s);
-			int v1, v2, v3;
+			int v1, v2;
+			float v3;
 			tmp >> v1 >> v2 >>v3;
 
-			if (v1, v2 <= m_numero_de_vertices && v3>0)
+			if (v1, v2 <= m_numero_de_vertices && v3>=0)
 			{
 				this->addAresta(v1, v2, v3);
 				this->addAresta(v2, v1, v3);
@@ -126,10 +127,10 @@ Lista::Lista(string path)
 
 
 
-
-	cout << endl << "Deseja rodar BFS ou DFS ou Dijkstra?" << endl;
+	cout << endl << "Deseja rodar BFS ou DFS ou Dijkstra ou MST?" << endl;
 	string escolha;
 	cin >> escolha;
+
 	if (escolha == "BFS")
 	{
 		int vertice;
@@ -157,6 +158,23 @@ Lista::Lista(string path)
 		Dijkstra(vertice);
 		cout << "Processo concluido." << endl;
 	}
+
+	if (escolha == "MST")
+	{
+		int vertice;
+		cout << "Escolha um vertice:" << endl;
+		cin >> vertice;
+		cout << "Rodando MST..." << endl;
+		MST(vertice);
+		cout << "Processo concluido." << endl;
+	}
+
+
+
+	float a = Distancia_media();
+	cout << a << endl;
+
+
 
 }
 
@@ -228,9 +246,6 @@ Lista::~Lista()
 
 void Lista::BFS_lista(int s)
 {
-
-	
-	
 
 	while (!fila.empty())   //cofere que a fila estara vazia
 	{
@@ -376,66 +391,236 @@ void Lista::FComponentes_conexas()
 
 void Lista::Dijkstra(int s)
 {
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+
 	Heap Dijkstra_heap;
+	m_distancia = new float[m_numero_de_vertices + 1]();
+	m_pai = new int[m_numero_de_vertices + 1]();
+	m_conjuntoS = new int[m_numero_de_vertices + 1]();
+
+	node **find = new node*[m_numero_de_vertices + 1]();
+
+	float infinito = std::numeric_limits<float>::max();
+	
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		if (i != s)
+		{
+			m_distancia[i] = infinito;
+		}
+		else Dijkstra_heap.insert(0, s);
+	}
+	
+	while (Dijkstra_heap.isEmpty() == false)
+	{
+		node* v = Dijkstra_heap.getMinimum();
+		int vertice = v->Vertice;
+		m_conjuntoS[vertice] = 1;
+		Dijkstra_heap.removeMinimum();
+
+		for (ListNode* w = m_pLista[vertice]; w != NULL;)
+		{
+			if ((m_distancia[w->vertice] > m_distancia[vertice] + w->peso) && (m_conjuntoS[w->vertice] == 0))
+			{
+				if (m_distancia[w->vertice] = !infinito)
+				{
+					find[w->vertice] = Dijkstra_heap.decreaseKey(find[w->vertice], m_distancia[vertice] + w->peso);
+					m_distancia[w->vertice] = m_distancia[vertice] + w->peso;
+					m_pai[w->vertice] = vertice;
+				}
+				else
+				{
+					find[w->vertice]=Dijkstra_heap.insert(m_distancia[vertice] + w->peso, w->vertice);
+					m_distancia[w->vertice] = m_distancia[vertice] + w->peso;
+					m_pai[w->vertice] = vertice;
+				}
+			}
+			w = w->pNext;
+		}
+	}
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	auto duration1 = duration_cast<milliseconds>(t2 - t1).count();
+	ofstream myTimeFile;
+	myTimeFile.open(m_savePath + "/Dijskstra_time.txt");
+	myTimeFile << duration1 <<" milisegundos" <<endl;
 
 
-	int Conjunto_S = 0;
-	int* distancia = new int[m_numero_de_vertices + 1]();
-	int* pai = new int[m_numero_de_vertices + 1]();
+	//imprime arquivo de saida
+	ofstream myDijkstraFile;
+	myDijkstraFile.open(m_savePath + "/lista_Dijskstra.txt");
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		myDijkstraFile << "Vertice: " << i << ", Distancia: " << m_distancia[i] << ", Caminho: " << i <<", ";
+		int x = i;
+		while (m_pai[x] != 0)
+		{
+			myDijkstraFile << m_pai[x] << ", ";
+			x = m_pai[x];
+		}
+		myDijkstraFile << endl;
+	}
+}
 
-	int infinito = std::numeric_limits<int>::max();
+void Lista::MST(int s)
+{
+	
+	Heap MST_heap;
+	m_distancia = new float[m_numero_de_vertices + 1]();
+	m_pai = new int[m_numero_de_vertices + 1]();
+	m_conjuntoS = new int[m_numero_de_vertices + 1]();
+	float infinito = std::numeric_limits<float>::max();
 
 	for (int i = 1; i <= m_numero_de_vertices; i++)
 	{
 		if (i != s)
 		{
-			Dijkstra_heap.insert(infinito,i);
-			distancia[i] = infinito;
+			m_distancia[i] = infinito;
 		}
-		else Dijkstra_heap.insert(0, i);
+		else MST_heap.insert(0, s);
 	}
 
-	while (Conjunto_S != m_numero_de_vertices)
+	while (MST_heap.isEmpty() == false)
 	{
-		node* v = Dijkstra_heap.getMinimum();
-		cout << v->Vertice;
-		cout << m_pLista[v->Vertice];
-		Dijkstra_heap.removeMinimum();
-		Conjunto_S++;
+		node* v = MST_heap.getMinimum();
+		int vertice = v->Vertice;
+		m_conjuntoS[vertice] = 1;
 
-		for (ListNode* w = m_pLista[v->Vertice]; w != NULL;)
+		MST_heap.removeMinimum();
+
+		for (ListNode* w = m_pLista[vertice]; w != NULL;)
 		{
-
-
-			if (distancia[w->vertice] > distancia[v->Vertice] + w->peso)
+			if ((m_distancia[w->vertice] > w->peso) && (m_conjuntoS[w->vertice] == 0))
 			{
-				node*x = Dijkstra_heap.find(distancia[w->vertice]);
-				Dijkstra_heap.decreaseKey( x, distancia[v->Vertice] + w->peso);
-				distancia[w->vertice] = distancia[v->Vertice] + w->peso;
-				pai[w->vertice] = v->Vertice;
+				if (m_distancia[w->vertice] = !infinito)
+				{
+					MST_heap.decreaseKey(MST_heap.find(m_distancia[w->vertice]),w->peso);
+					m_distancia[w->vertice] = w->peso;
+					m_pai[w->vertice] = vertice;
+				}
+				else
+				{
+					MST_heap.insert(w->peso, w->vertice);
+					m_distancia[w->vertice] =  w->peso;
+					m_pai[w->vertice] = vertice;
+				}
 			}
 			w = w->pNext;
 		}
-
 	}
+
+
 
 	//imprime arquivo de saida
-	int x;
-
-	ofstream myDijkstraFile;
-	myDijkstraFile.open(m_savePath + "/lista_Dijskstra.txt");
+	ofstream myMSTFile;
+	myMSTFile.open(m_savePath + "/lista_MST.txt");
+	float peso_total = 0;
 	for (int i = 1; i <= m_numero_de_vertices; i++)
 	{
-		myDijkstraFile << "Vertice: " << i << ", Distancia: " << distancia[i] << "Caminho: " << i <<", ";
-		x = i;
-		while (pai[x] != 0)
-		{
-			myDijkstraFile << pai[x] << ", ";
-			x = pai[x];
-		}
-
+		peso_total += m_distancia[i];
 	}
 
+	myMSTFile << "Peso total: " << peso_total <<endl ;
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		myMSTFile << i << "   " << m_pai[i] << endl;
+	}
+	
 }
 
+int Lista::Excentricidade(int s)
+{
+	int excentricidade=0;
+	Lista::Dijkstra(s);
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		if (excentricidade < m_distancia[i]) excentricidade = m_distancia[i];
+
+	}
+	return excentricidade;
+}
+
+float Lista::Distancia_media()
+{
+
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+	m_pares_invalidos = 0;
+	float Distancia_media = 0;
+	int fatorial = 1;
+
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		Dijkstra_modificado(i);
+		Distancia_media = Distancia_media + m_distancia_parcial;
+	}
+
+	
+	int combinacoes = ((m_numero_de_vertices - 1)* m_numero_de_vertices) / 2 ;
+	combinacoes = combinacoes - m_pares_invalidos;
+
+	Distancia_media = Distancia_media / combinacoes;
+
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	auto duration1 = duration_cast<milliseconds>(t2 - t1).count();
+	cout << duration1 << endl;
+
+	return Distancia_media;
+}
+
+
+void Lista::Dijkstra_modificado(int s)
+{
+	m_distancia_parcial = 0;
+	Heap Dijkstra_heap;
+	m_distancia = new float[m_numero_de_vertices + 1]();
+	m_conjuntoS = new int[m_numero_de_vertices + 1]();
+
+	node **find = new node*[m_numero_de_vertices + 1]();
+
+	float infinito = std::numeric_limits<float>::max();
+
+	for (int i = 1; i <= m_numero_de_vertices; i++)
+	{
+		if (i > s)
+		{
+			m_distancia[i] = infinito;
+		}
+		else Dijkstra_heap.insert(0, s);
+	}
+
+	while (Dijkstra_heap.isEmpty() == false)
+	{
+		node* v = Dijkstra_heap.getMinimum();
+		int vertice = v->Vertice;
+		m_conjuntoS[vertice] = 1;
+		Dijkstra_heap.removeMinimum();
+
+		for (ListNode* w = m_pLista[vertice]; w != NULL;)
+		{
+			if ((w->vertice > s) && (m_distancia[w->vertice] > m_distancia[vertice] + w->peso) && (m_conjuntoS[w->vertice] == 0))
+			{
+				if (m_distancia[w->vertice] = !infinito)
+				{
+					find[w->vertice] = Dijkstra_heap.decreaseKey(find[w->vertice], m_distancia[vertice] + w->peso);
+					m_distancia[w->vertice] = m_distancia[vertice] + w->peso;
+				}
+				else
+				{
+					find[w->vertice] = Dijkstra_heap.insert(m_distancia[vertice] + w->peso, w->vertice);
+					m_distancia[w->vertice] = m_distancia[vertice] + w->peso;
+				}
+			}
+			w = w->pNext;
+		}
+	}
+
+	for (int i = s; i <= m_numero_de_vertices; i++)
+	{
+		if (m_distancia[i] != infinito) m_distancia_parcial = m_distancia_parcial + m_distancia[i];
+		else m_pares_invalidos = m_pares_invalidos + 1;
+	}
+}
 
