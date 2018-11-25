@@ -91,42 +91,33 @@ Tsp::Tsp(string path)
     
     
     // algoritmo que encontrara um ciclo euleriano valido dado a arvore geradora miinima com arestas duplas direcionadas
-
-    printCircuit(adj1);
+    
+    
+    
+    this->printCircuit(adj1);
     
 
     
     
-     comprimento = 0;
-     int* marcacao = new int[m_numero_de_vertices+1]();
-     int* percurso = new int[m_numero_de_vertices+1]();
-     int y = 0;
-     for (long i = m_circuit.size() - 1; i >= 0; i--)
-     {
-     int x = m_circuit[i];
-     cout << m_circuit[i] << ", ";
-     if (marcacao[x] == 0)
-     {
-     marcacao[x] = 1;
-     percurso[y] = x;
-     y++;
-     }
-     }
-     percurso[m_numero_de_vertices + 1] = percurso[0];
-    
-    
+  
      ofstream myTspFile;
      myTspFile.open(m_savePath + "/tsp.txt");
      for (int i = 0; i <= m_numero_de_vertices; i++)
      {
+        
      myTspFile <<"(" << x_axis[percurso[i]] <<", " << y_axis[percurso[i]] << ") " ;
-     comprimento += sqrt(((x_axis[i]) - (x_axis[i+1]))* ((x_axis[i]) - (x_axis[i+1])) + ((y_axis[i]) - (y_axis[i+1]))*((y_axis[i]) - (y_axis[i+1])));
+         
+  
     
-    if (i != m_numero_de_vertices) myTspFile << " -> ";
+    if (i != m_numero_de_vertices)
+    {
+        myTspFile << " -> ";
+        comprimento += sqrt(((x_axis[percurso[i]]) - (x_axis[percurso[i+1]]))* ((x_axis[percurso[i]]) - (x_axis[percurso[i+1]])) + ((y_axis[percurso[i]]) - (y_axis[percurso[i+1]]))*((y_axis[percurso[i]]) - (y_axis[percurso[i+1]])));
+     }
      }
      myTspFile << endl << comprimento;
     
-
+    return;
 
 }
 
@@ -215,6 +206,12 @@ void Tsp::MST(int s)
 void Tsp::printCircuit(vector< vector<int> > adj)
 {
     
+    
+    int* marcacao = new int[m_numero_de_vertices+1]();
+
+    int y = m_numero_de_vertices;
+    comprimento =0;
+    
 
     
     // adj represents the adjacency list of
@@ -265,14 +262,22 @@ void Tsp::printCircuit(vector< vector<int> > adj)
         else
         {
             m_circuit.push_back(curr_v);
-
+            
+            if (marcacao[curr_v]==0)
+            {
+                marcacao[curr_v]=1;
+                percurso[y] = curr_v;
+                y--;
+    
+                
+            }
             // Back-tracking
             curr_v = curr_path.top();
             curr_path.pop();
         }
     }
     
-    
+    percurso[0] = percurso[m_numero_de_vertices];
     
     ofstream mycircuitoFile;
     mycircuitoFile.open(m_savePath + "/circuito.txt");
@@ -282,8 +287,9 @@ void Tsp::printCircuit(vector< vector<int> > adj)
     {
         
         mycircuitoFile<< m_circuit[i] <<endl;
-        
+
     }
+
     
     
     
