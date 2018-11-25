@@ -8,6 +8,7 @@
 #include "Heap.h"
 #include <stack>
 #include <vector>
+#include <limits>
 #include <unordered_map>
 
 
@@ -150,13 +151,22 @@ void Tsp::addAresta(int de, int para, float peso)
 
 void Tsp::MST(int s)
 {
+
+    
+    // inicializa heap e vetores auxiliares
     Heap MST_heap;
     m_distancia = new float[m_numero_de_vertices + 1]();
     m_pai = new int[m_numero_de_vertices + 1]();
     m_conjuntoS = new int[m_numero_de_vertices + 1]();
+    
+    //define infinito
     float infinito = std::numeric_limits<float>::max();
+    
+    // find eé usado para podermos acessar um nó em O(1) ja que a funcao find implementada no heap é em O(n),
+    //o que é importante pois o nóé necessário para fazer a operaçao de alteração de uma chave do heap
     node **find = new node*[m_numero_de_vertices + 1]();
     
+    //inicializa vetor distancia como infinito, menos para o vertice s que é 0, e add o vertice s no heap
     for (int i = 1; i <= m_numero_de_vertices; i++)
     {
         if (i != s)
@@ -168,33 +178,34 @@ void Tsp::MST(int s)
     
     while (MST_heap.isEmpty() == false)
     {
-        node* v = MST_heap.getMinimum();
+        node* v = MST_heap.getMinimum();  //pega valor minimo do heap
         int vertice = v->Vertice;
         m_conjuntoS[vertice] = 1;
         
-        MST_heap.removeMinimum();
+        MST_heap.removeMinimum();  // remove minimo do heap
         
         for (TspNode* w = m_pTsp[vertice]; w != NULL;)
         {
+            //percorre os vizinhos desse vertice tirado do heap
             if ((m_distancia[w->vertice] > w->peso) && (m_conjuntoS[w->vertice] == 0))
             {
-                if (m_distancia[w->vertice] = !infinito)
+                //se esse vertice ainda nao foi adicionado no heap, adiciona e atualiza vetores auxiliares
+                if ((m_distancia[w->vertice] = !infinito))
                 {
-                    find[w->vertice] = MST_heap.decreaseKey(find[w->vertice], w->peso);
+                    find[w->vertice] = MST_heap.decreaseKey(find[w->vertice],  w->peso);
                     m_distancia[w->vertice] = w->peso;
                     m_pai[w->vertice] = vertice;
                 }
+                //se esse vertice ja foi adicionado no heap, atualiza e atualiza vetores auxiliares
                 else
                 {
-                    find[w->vertice] = MST_heap.insert(w->peso, w->vertice);
-                    m_distancia[w->vertice] = w->peso;
+                    find[w->vertice]=MST_heap.insert( w->peso, w->vertice);
+                    m_distancia[w->vertice] =  w->peso;
                     m_pai[w->vertice] = vertice;
                 }
             }
             w = w->pNext;
         }
-        
-        return;
     }
 }
 
