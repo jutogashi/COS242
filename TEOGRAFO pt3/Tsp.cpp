@@ -1,4 +1,3 @@
-
 #include "Tsp.h"
 #include <iostream>
 #include <string>
@@ -17,6 +16,7 @@ using namespace std;
 
 Tsp::Tsp(string path)
 {
+    //leitura do arquivo;
     ifstream myFile;
     
     
@@ -32,12 +32,15 @@ Tsp::Tsp(string path)
     myFile >> m_numero_de_vertices;
     // Salva o numero de vertices totais do grafo
     m_pTsp = new TspNode*[m_numero_de_vertices+1]();
-    
     // aloca espaço para o vetor de tamanho igual ao numero de vertices +1, para nõ precisarmos
     //nos preocupar com o 0.
+    
+    // como diferentemente das outras partes, temos o arquivo com cordenadas, as guardaremos em vetores
+    //correspondentes ao eixo x e y
     float* x_axis = new float[m_numero_de_vertices+1]();
     float* y_axis = new float[m_numero_de_vertices+1]();
     
+    //variavel auxiliar para numerar os vertices, sendo que eles estão na ordem de leitura do arquivo, sendo o primeiro =1
     int n = 1;
     string s;
     //guarda cada linha do arquivo
@@ -57,12 +60,15 @@ Tsp::Tsp(string path)
             // cria arestas entre o novo vertice, e todos os ja anteriormente computados
             for( int i=1 ; i<n; i++ )
             {
+                //calcula distancia euclidiana entre vertices, e adiciona as arestas na posição dos vetores 
+                //na lista de adjacencia para ambos (grafo completo)
                 float distancia = sqrt(((x_axis[i]) - (x_axis[n]))* ((x_axis[i]) - (x_axis[n])) + ((y_axis[i]) - (y_axis[n]))*((y_axis[i]) - (y_axis[n])));
                 
                 addAresta(n,i,distancia);
                 addAresta(i,n, distancia);
             }
             
+            //incrementa o numero do vertice
             n++;
             
         }
@@ -75,9 +81,10 @@ Tsp::Tsp(string path)
     //duplicam-se as arestas
     vector< vector<int> > adj1;
     adj1.resize(m_numero_de_vertices+1);
-    // vector to store final circuit
+    // vetor para guardar circuito final
     vector<int> m_circuit;
     
+    //cria nova lista de adjacencia para a arvore correspondente a MST com arestas direcionadas
     for (int i = 1; i<=m_numero_de_vertices; i++)
     {
         if (m_pai[i] != 0)
@@ -91,32 +98,24 @@ Tsp::Tsp(string path)
     
     
     // algoritmo que encontrara um ciclo euleriano valido dado a arvore geradora miinima com arestas duplas direcionadas
-    
-    
-    
     this->printCircuit(adj1);
-    
-
-    
-    
-  
+   
+    //gera arquivo de saida
      ofstream myTspFile;
      myTspFile.open(m_savePath + "/tsp.txt");
      for (int i = 0; i <= m_numero_de_vertices; i++)
      {
-         
-
-     
+     //imprime caminho
      myTspFile << percurso[i] << " "  ;
-         
-  
-    
+        
     if (i != m_numero_de_vertices)
     {
-
+    //calcula comprimento total do dado caminho
         comprimento += sqrt(((x_axis[percurso[i]]) - (x_axis[percurso[i+1]]))* ((x_axis[percurso[i]]) - (x_axis[percurso[i+1]])) + ((y_axis[percurso[i]]) - (y_axis[percurso[i+1]]))*((y_axis[percurso[i]]) - (y_axis[percurso[i+1]])));
      }
      }
+    
+    //imprime o comprimento
      myTspFile << endl << comprimento;
 
     
@@ -137,12 +136,13 @@ void Tsp::addAresta(int de, int para, float peso)
     }
     no->pNext = m_pTsp[de];
     no->pPrev = NULL;
-    // peso calcula a distancia euclidiana entre os dois pontos;
+    // peso calculo da distancia euclidiana entre os dois pontos;
     no->peso = peso;
     this->m_pTsp[de] = no;
     
 }
 
+//semelhante a MST implementada em lista
 void Tsp::MST(int s)
 {
 
@@ -205,83 +205,76 @@ void Tsp::MST(int s)
 
 
 
-
+//algoritmo para encontrar um circuito euleriano no grafo
 void Tsp::printCircuit(vector< vector<int> > adj)
 {
-    
-    
+    //vetor auxiliar para construir circuito heuleriano
     int* marcacao = new int[m_numero_de_vertices+1]();
 
 
-    // adj represents the adjacency list of
-    // the directed graph
-    // edge_count represents the number of edges
-    // emerging from a vertex
+    // adj representa a lista de adjacencia do grafo direcionado
+    // edge_count representa o numero de arestas saindo de um vertice
+
     unordered_map<int,int> edge_count;
     
     for (int i=0; i<adj.size(); i++)
     {
-        //find the count of edges to keep track
-        //of unused edges
+        //acha o numero de arestas para manter numero de arestas que ainda não foram utilizadas
         edge_count[i] = adj[i].size();
     }
     
     if (!adj.size())
-        return; //empty graph
+        return; //grafo vazio
     
-    // Maintain a stack to keep vertices
+    // pilha para manter os vertices
     stack<int> curr_path;
     
-    
-    
-    // start from any vertex
+    // começa de um vertice qualquer
     curr_path.push(1);
-    int curr_v = 1; // Current vertex
+    int curr_v = 1; // Vertice atual
     
     while (!curr_path.empty())
     {
-        // If there's remaining edge
+        // Se ainda há arestas sobrando
         if (edge_count[curr_v])
         {
-            // Push the vertex
+            // bota o vertice na pilha
             curr_path.push(curr_v);
             
-            // Find the next vertex using an edge
+            // acha o proximo vertice usando uma aresta
             int next_v = adj[curr_v].back();
             
-            // and remove that edge
+            // remove essa aresta
             edge_count[curr_v]--;
             adj[curr_v].pop_back();
             
-            // Move to next vertex
+            // passa para proximo vertice
             curr_v = next_v;
         }
         
-        // back-track to find remaining circuit
+        // volta para achar circuitos restantes
         else
         {
             m_circuit.push_back(curr_v);
-            
-        
-            // Back-tracking
             curr_v = curr_path.top();
             curr_path.pop();
         }
     }
     
    
-    
+    // variavel auxiliar para criar array com ciclo heuleriano
     int y = 0;
+    //imprime circuito euleriano
     ofstream mycircuitoFile;
     mycircuitoFile.open(m_savePath + "/circuito.txt");
-    
-    // we've got the circuit, now print it in reverse
+
     for (long i = m_circuit.size() - 1; i >= 0; i--)
     {
         
         mycircuitoFile<< m_circuit[i] <<endl;
         if (marcacao[m_circuit[i]]==0)
         {
+            //se ainda não passamos por esse vertice, adiciona ele no cilo hamiltoniano
             marcacao[m_circuit[i]]=1;
             percurso[y] = m_circuit[i];
             y++;
@@ -289,6 +282,7 @@ void Tsp::printCircuit(vector< vector<int> > adj)
         }
 
     }
+    //fecha o ciclo
      percurso[m_numero_de_vertices] = percurso[0];
 
     
